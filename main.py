@@ -13,7 +13,6 @@ def log(text):
     now = datetime.datetime.now()
     with open("log.txt", "a") as log:
         log.write("[" + now.strftime("%Y-%m-%d %H:%M:%S") + "] " + text + "\n")
-    print(text)
 
 
 def main():
