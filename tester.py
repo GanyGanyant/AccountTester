@@ -8,6 +8,7 @@ from main import log
 import datetime
 import time
 import os
+import re
 
 
 def read():
@@ -56,8 +57,8 @@ def netflix():
         passInput = driver.find_element_by_id("id_password")
         logIn = driver.find_element_by_xpath(
             '//*[@id="appMountPoint"]/div/div[3]/div/div/div[1]/form/button')
-        email = acc.split(":")[0]
-        password = acc.split(":")[1]
+        email = re.split("\s|:", acc)[0]
+        password = re.split("\s|:", acc)[1]
         if len(password) < 4:
             continue
         emailInput.clear()
@@ -85,8 +86,8 @@ def netflix():
             log("Password working for " + acc)
             accLog(acc, fileName)
             logout.click()
-            goNow = driver.find_element_by_link_text("Go now")
-            goNow.click()
+            #goNow = driver.find_element_by_link_text("Go now")
+            # goNow.click()
             signIn = driver.find_element_by_link_text("Sign In")
             signIn.click()
     driver.close()
