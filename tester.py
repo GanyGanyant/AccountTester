@@ -46,10 +46,13 @@ def netflix(fileName=0):
     log("launching webdriver for netflix")
     driver = webdriver.Chrome()
     driver.get("https://www.netflix.com/")
-    rejectCookies = driver.find_element_by_xpath(
-        '//*[@id="cookie-disclosure"]/div[1]/button[2]')
-    rejectCookies.click()
-    log("cookies rejected")
+    try:
+        rejectCookies = driver.find_element_by_xpath(
+            '//*[@id="cookie-disclosure"]/div[1]/button[2]')
+        rejectCookies.click()
+        log("cookies rejected")
+    except:
+        log("cookies not found")
     signIn = driver.find_element_by_link_text("Sign In")
     time.sleep(2)
     signIn.click()
@@ -60,6 +63,7 @@ def netflix(fileName=0):
                     fileTime.strftime("%Y-%m-%d_%H-%M-%S") + ".txt")
     credentials = read()
     for acc in credentials:
+        time.sleep(1)
         try:
             WebDriverWait(driver, 5).until(
                 EC.presence_of_element_located((
